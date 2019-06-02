@@ -1,0 +1,169 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb} 
+\usepackage[margin=1in]{geometry}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{pdfpages}
+\graphicspath{ {figures/} }
+% \usepackage{caption}
+% \usepackage{multirow}
+% \usepackage{mwe}
+% \usepackage{subfig}
+% \usepackage{caption}
+% \usepackage{float}
+% \usepackage{cite}
+\newcommand\myeq{\stackrel{\mathclap{\normalfont\mbox{\scriptsize{def}}}}{=}}
+
+
+\begin{document}
+
+\section{A toy problem} 
+Let's solve:
+\begin{equation}
+ \frac{\partial{}u}{\partial{t}}=
+ \nu\frac{\partial^2u}{\partial{z}^2}+\sin(mz)
+\end{equation}
+for $0<z<\pi$ and $0<t<T$ and Dirchlet boundary conditions:
+\begin{flalign}
+ u(0,t)&=0\\
+ u(\pi,t)&=0
+\end{flalign}
+and the initial condition:
+\begin{equation}
+ u(z,0)=z(\pi-z)
+ \label{eq:IC}
+\end{equation}
+\subsection{Analytical solution}
+Start by solving:
+\begin{equation}
+ %\frac{\partial{}u}{\partial{t}}=
+ \frac{\partial^2u_s}{\partial{z}^2}=-\frac{1}{\nu}\sin(mz)
+\end{equation}
+The solution is %(WRONG! THIS DOESN'T MATCH THE IC?) 
+\begin{equation}
+ u_s=\frac{1}{\nu{}m^2}\sin(mz) %\qquad m=[0,1,2,...,\infty]
+\end{equation}
+% Verification:
+% \begin{flalign*}
+%  %\frac{\partial{}u}{\partial{t}}=
+%  \frac{\partial{}u_s}{\partial{z}}&=\frac{1}{k\nu}\cos(kx)\\
+%  \frac{\partial^2u_s}{\partial{z}^2}&=-\frac{1}{\nu}\sin(kx)\\
+% \end{flalign*}
+Now let:
+\begin{equation}
+ u(z,t)=u_s+v(z,t)%+u_0
+\end{equation}
+where 
+\begin{equation}
+ \frac{\partial{}v}{\partial{t}}=
+ \nu\frac{\partial^2v}{\partial{z}^2}
+\end{equation}
+\begin{flalign}
+ v(0,t)&=0\\
+ v(\pi,t)&=0\\
+ v(z,0)&=z(\pi-z)-u_s
+\end{flalign}
+Need a function that has $z(\pi-z)$ as it's time derivative and also it's second spatial derivative.
+The solution is a Fourier series for an odd parabola 
+($L=\pi,H=\pi^2/4$)
+\begin{equation}
+ v(z,t)=-\frac{1}{\nu{}m^2}\sin(mz)\mathrm{e}^{-\nu{}m^2t}+\sum_{n=1}^\infty\frac{4}{n^3\pi}(1-(-1)^n)\sin(nz)\mathrm{e}^{-\nu{}n^2t}
+\end{equation}
+The full solution is then:
+\begin{equation}
+ u(z,t)=\frac{1}{\nu{}m^2}\sin(mz)(1-\mathrm{e}^{-\nu{}m^2t})+\sum_{n=1}^\infty\frac{4}{n^3\pi}(1-(-1)^n)\sin(nz)\mathrm{e}^{-\nu{}n^2t}
+\end{equation}
+Verification:
+ \begin{flalign}
+  %\frac{\partial{}u}{\partial{t}}=
+  \frac{\partial{}u}{\partial{t}}&=\sin(mz)\mathrm{e}^{-\nu{}m^2t}-\nu{}\sum_{n=1}^\infty\frac{4}{n\pi}(1-(-1)^n)\sin(nz)\mathrm{e}^{-\nu{}n^2t}\\
+  %\frac{\partial{}v}{\partial{z}}&=-\frac{1}{m\nu}\cos(mz)\mathrm{e}^{-\nu{}m^2t}\\
+  \nu{}\frac{\partial^2u}{\partial{z^2}}&=\sin(mz)(\mathrm{e}^{-\nu{}m^2t}-1)-\nu{}\sum_{n=1}^\infty{}\frac{4}{n\pi}(1-(-1)^n)\sin(nz)\mathrm{e}^{-\nu{}n^2t}
+ \end{flalign}
+And so we see that Equation 1 is satisfied. The two boundary conditions and the initial condition 
+are satisfied by Equation 13.
+\subsection{The Galerkin solution}
+Now we want to obtain a solution to Equation using ``trial'' functions of the form:
+\begin{equation}
+ u(z,t)=\sum_{n=1}^NA_n(t)\sin(nz)
+\end{equation}
+The error of approximation of the solution is:
+\begin{flalign}
+ \epsilon(z,t)&=\frac{\partial{}u}{\partial{t}}-
+ \nu\frac{\partial^2u}{\partial{z}^2}-\sin(mz)\\
+ &=\sum_{n=1}^N\Big(\frac{\partial{}A_n}{\partial{t}}+n^2\nu{}A_n\Big)\sin(nz)-\sin(mz)
+\end{flalign}
+To minimize $\epsilon$ wer require that its projection onto the functional subspace 
+of $N$ orthogonal functions (``test'' functions $\phi_p(z)$) is zero. Basically, the inner product 
+of the error and each test function is zero:
+\begin{equation}
+ \epsilon\cdot\phi_p=\int_0^\pi\epsilon\phi_p\mathrm{dz}=0 \qquad m=[1,...,N]
+\end{equation}
+For the Galerkin method, the test functions are chose to be the same as the trial 
+functions, so
+\begin{equation}
+ \phi_p=\sin(pz)
+\end{equation}
+Note the orthogonality property:
+\begin{equation}
+ \int_0^\pi\sin(nz)\sin(pz)\mathrm{dz}=
+ \begin{matrix}
+  0 \qquad \text{if} \quad p\neq{}n\\
+  \pi/2 \quad \text{if} \quad p=n\\
+ \end{matrix}
+\end{equation}
+Now evaluate:
+\begin{flalign}
+ \int_0^\pi\epsilon\phi_p\mathrm{dz}
+ &=\int_0^\pi\Big(\sum_{n=1}^N\Big(\frac{\partial{}A_n}{\partial{t}}+n^2\nu{}A_n\Big)\sin(nz)
+ -\sin(mz)\Big)\sin(pz)\mathrm{dz}\\
+ &=\int_0^\pi\Big(\sum_{n=1}^N\Big(\frac{\partial{}A_n}{\partial{t}}+n^2\nu{}A_n\Big)\sin(nz)\Big)\sin(pz)\mathrm{dz}
+ -\int_0^\pi\sin(mz)\sin(pz)\mathrm{dz}\\
+ &=0
+\end{flalign}
+An expression for the time derivative of the coefficients that satisfies the orthogonality condition 
+is:
+\begin{equation}
+ \frac{\partial{}A_n}{\partial{t}}=-n^2\nu{}A_n+\delta_{mn}
+ \label{eq:Galerkin_coeffs}
+\end{equation}
+So now we can solve Equation \ref{eq:Galerkin_coeffs} numerically to obtain $A_n$ and subsequently $u$.
+To obtain the initial conditions we apply the orthogonality to the initial condition (Equation \ref{eq:IC}):
+% \begin{flalign}
+%  \int_0^\pi{}u(z,0)\sin(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  \int_0^\pi{}\sum_{n=1}^NA_n(0)\sin^2(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  \sum_{n=1}^NA_n(0)\int_0^\pi{}\sin^2(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  \sum_{n=1}^NA_n(0)\Big(\frac{\pi}{2}-\frac{\sin(2\pi{}n)}{4n}\Big)&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  &=\frac{-\pi{}n\sin(n\pi)-2\cos(n\pi)+2}{n^3}
+% \end{flalign}
+% \begin{flalign}
+%  \int_0^\pi{}u(z,0)\sin(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  \int_0^\pi{}\sum_{n=1}^NA_n(0)\sin^2(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+%  \sum_{n=1}^NA_n(0)\int_0^\pi{}\sin(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\mathrm{dz}\\
+%  \sum_{n=1}^NA_n(0)\Big(\frac{1-\cos(n\pi{})}{n}\Big)&=\frac{\pi^3}{6}\\
+%  \sum_{n=1}^NA_n(0)&=\frac{-\pi{}n\sin(n\pi)-2\cos(n\pi)+2}{n^3}
+% \end{flalign}
+% \begin{flalign}
+%  0&=\int_0^\pi{}\big(u(z,0)-z(\pi-z)\big)\sin(nz)\mathrm{dz}\\
+%  &=\int_0^\pi{}A_n(0)\sin^2(nz)-z(\pi-z)\sin(nz)\mathrm{dz}\\
+% &=\frac{A_n(0)\big(2\pi{}n^3-n^2\sin(2n\pi)\big)}{4n^3}
+% +\frac{4\pi{}n\sin(n\pi)+8\cos(n\pi)-8}{4n^3}\\
+% 4\pi{}n\sin(n\pi)+8\cos(n\pi)-8&=A_n(0)\big(2\pi{}n^3-n^2\sin(2n\pi)\big)\\
+% A_n(0)&=\frac{4\pi{}n\sin(n\pi)+8\cos(n\pi)-8}{2\pi{}n^3-n^2\sin(2n\pi)}
+% \end{flalign}
+\begin{flalign}
+ \int_0^\pi{}u(z,0)\sin(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+ A_n(0)\int_0^\pi{}\sin^2(nz)\mathrm{dz}&=\int_0^\pi{}z(\pi-z)\sin(nz)\mathrm{dz}\\
+ A_n(0)\frac{\pi}{2}&=\frac{2-2\cos(n\pi)}{n^3}\\
+ A_n(0)&=\frac{4(1-\cos(n\pi))}{\pi{}n^3}
+ %\sum_{n=1}^NA_n(0)\Big(\frac{1-\cos(n\pi{})}{n}\Big)&=\frac{\pi^3}{6}\\
+ %\sum_{n=1}^NA_n(0)&=\frac{-\pi{}n\sin(n\pi)-2\cos(n\pi)+2}{n^3}
+\end{flalign}
+Now we can advance the coefficients $A_n(t)$ forward in time.
+
+
+\end{document}
